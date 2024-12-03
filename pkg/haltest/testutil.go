@@ -1,4 +1,4 @@
-package hal_test
+package haltest
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func newClientServer(t *testing.T) (*hal.Connection, *hassws.Server, func()) {
+func NewClientServer(t *testing.T) (*hal.Connection, *hassws.Server, func()) {
 	// Create test server
 	server, err := hassws.NewServer()
 	assert.NilError(t, err)
@@ -29,7 +29,7 @@ func newClientServer(t *testing.T) (*hal.Connection, *hassws.Server, func()) {
 	assert.NilError(t, err)
 
 	return conn, server, func() {
-		conn.Close()
+		conn.HomeAssistant().Close()
 		server.Close()
 	}
 }

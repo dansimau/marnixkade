@@ -1,7 +1,7 @@
 package hal
 
-type Automation struct {
-	Name     string
-	Entities Entities
-	Action   func()
+type Automation interface {
+	Name() string
+	Entities() Entities
+	Action()
 }

@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/dansimau/home-automation/pkg/hal"
+	"github.com/dansimau/home-automation/pkg/haltest"
 	"github.com/dansimau/home-automation/pkg/homeassistant"
-	"github.com/dansimau/home-automation/pkg/testutil"
 )
 
 func TestConnection(t *testing.T) {
-	conn, server, cleanup := newClientServer(t)
+	conn, server, cleanup := haltest.NewClientServer(t)
 	defer cleanup()
 
 	// Create test entity and register it
@@ -25,7 +25,7 @@ func TestConnection(t *testing.T) {
 	})
 
 	// Verify entity state was updated
-	testutil.WaitFor(t, func() bool {
+	haltest.WaitFor(t, func() bool {
 		return entity.State.State == "on"
 	})
 }

@@ -10,7 +10,7 @@ import (
 func main() {
 	slog.SetLogLoggerLevel(slog.LevelInfo)
 
-	if err := home.NewHome().Start(); err != nil {
+	if err := home.NewMarnixkade().Start(); err != nil {
 		slog.Error("Error starting home", "error", err)
 		os.Exit(1)
 	}

@@ -23,7 +23,7 @@ func (l *Light) TurnOn() error {
 		return errors.New("entity not registered")
 	}
 
-	_, err := l.connection.Client.CallService(hassws.CallServiceRequest{
+	_, err := l.connection.HomeAssistant().CallService(hassws.CallServiceRequest{
 		Type:    hassws.MessageTypeCallService,
 		Domain:  "light",
 		Service: "turn_on",
@@ -40,7 +40,7 @@ func (l *Light) TurnOff() error {
 		return errors.New("entity not registered")
 	}
 
-	_, err := l.connection.Client.CallService(hassws.CallServiceRequest{
+	_, err := l.connection.HomeAssistant().CallService(hassws.CallServiceRequest{
 		Type:    hassws.MessageTypeCallService,
 		Domain:  "light",
 		Service: "turn_off",
