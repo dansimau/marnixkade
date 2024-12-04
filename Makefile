@@ -1,3 +1,7 @@
+.PHONY: out
+out:
+	go run main.go
+
 .PHONY: docker
 docker:
 	mkdir -p build
