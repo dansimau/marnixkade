@@ -7,7 +7,6 @@ import (
 
 	"github.com/dansimau/hal"
 	halautomations "github.com/dansimau/hal/automations"
-	"github.com/dansimau/hal/hassws"
 )
 
 type Marnixkade struct {
@@ -22,11 +21,14 @@ type Hallway struct {
 }
 
 func NewMarnixkade() *Marnixkade {
+	cfg, err := hal.LoadConfig()
+	if err != nil {
+		slog.Error("Error loading config", "error", err)
+		os.Exit(1)
+	}
+
 	home := &Marnixkade{
-		Connection: hal.NewConnection(hassws.NewWebsocketAPI(hassws.ClientConfig{
-			Host:  "nas:8123",
-			Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIyMmI4YmMwNWQ2YTM0YmNiYTYyMmE3MGI2M2Y4ZWU2NiIsImlhdCI6MTczMjc0Njc4OSwiZXhwIjoyMDQ4MTA2Nzg5fQ.xi8DDzg50D-if-I0j4q-r-TzQ__xVl-13tcB5_hUmRQ",
-		})),
+		Connection: hal.NewConnection(*cfg),
 		Hallway: Hallway{
 			Lights:       hal.NewLight("light.front_hallway"),
 			MotionSensor: hal.NewEntity("binary_sensor.hallway_motion"),
