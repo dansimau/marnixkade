@@ -8,6 +8,7 @@ require github.com/dansimau/hal v0.0.0-20241204133341-b5e97b88b9fb
 
 require (
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/nathan-osman/go-sunrise v1.1.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
