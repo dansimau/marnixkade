@@ -13,6 +13,7 @@ type Marnixkade struct {
 	*hal.Connection
 
 	DiningRoom DiningRoom
+	Bedroom    Bedroom
 	Hallway    Hallway
 	Kitchen    Kitchen
 	LivingRoom LivingRoom
@@ -22,6 +23,16 @@ type Marnixkade struct {
 	// Guest mode is a switch that can be used to turn off certain automations
 	// when guests are over.
 	GuestMode *hal.BinarySensor
+}
+
+type Bedroom struct {
+	Lights        *hal.Light
+	GoldenSunLamp *hal.Light
+	ClosetLights  hal.LightGroup
+	BedLights     *hal.Light
+
+	ClosetMotionSensor *hal.BinarySensor // Hue Motion Sensor
+	PresenceSensor     *hal.BinarySensor // Aqara FP2 (Bedroom)
 }
 
 type DiningRoom struct {
@@ -71,6 +82,19 @@ func NewMarnixkade() *Marnixkade {
 
 	home := &Marnixkade{
 		Connection: hal.NewConnection(*cfg),
+
+		Bedroom: Bedroom{
+			Lights:        hal.NewLight("light.bedroom_lights"),
+			GoldenSunLamp: hal.NewLight("light.golden_sun"),
+			ClosetLights: hal.LightGroup{
+				hal.NewLight("light.bedroom_closet_left"),
+				hal.NewLight("light.bedroom_closet_right"),
+			},
+			BedLights: hal.NewLight("light.bed_strip"),
+
+			ClosetMotionSensor: hal.NewBinarySensor("binary_sensor.bedroom_motion"),
+			// PresenceSensor:     hal.NewBinarySensor("binary_sensor."),
+		},
 		DiningRoom: DiningRoom{
 			Lights:         hal.NewLight("light.dining"),
 			PresenceSensor: hal.NewBinarySensor("binary_sensor.presence_sensor_fp2_b6d8_presence_sensor_2"),
