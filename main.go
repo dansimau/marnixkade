@@ -117,13 +117,13 @@ func NewMarnixkade() *Marnixkade {
 
 	// Register automations
 	home.RegisterAutomations(
-		halautomations.NewSensorsTriggersLights().
+		halautomations.NewSensorsTriggerLights().
 			WithName("Dining table lights").
 			WithSensors(home.DiningRoom.PresenceSensor).
 			WithLights(home.DiningRoom.Lights).
 			TurnsOffAfter(15*time.Minute),
 
-		halautomations.NewSensorsTriggersLights().
+		halautomations.NewSensorsTriggerLights().
 			WithName("Hallway lights").
 			WithSensors(home.Hallway.MotionSensor).
 			WithLights(home.Hallway.Lights).
@@ -158,7 +158,7 @@ func NewMarnixkade() *Marnixkade {
 				}
 			}),
 
-		halautomations.NewSensorsTriggersLights().
+		halautomations.NewSensorsTriggerLights().
 			WithName("Study lights").
 			WithCondition(func() bool {
 				// Disable automation if guest mode is on
@@ -168,7 +168,7 @@ func NewMarnixkade() *Marnixkade {
 			WithLights(home.Study.Lights).
 			TurnsOffAfter(5*time.Minute),
 
-		halautomations.NewSensorsTriggersLights().
+		halautomations.NewSensorsTriggerLights().
 			WithName("Upstairs bookshelf lamps").
 			WithSensors(home.Upstairs.PresenceSensor).
 			WithLights(home.LivingRoom.MoroccanLamp, home.LivingRoom.SaltLamp).
