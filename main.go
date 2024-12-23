@@ -18,6 +18,10 @@ type Marnixkade struct {
 	LivingRoom LivingRoom
 	Study      Study
 	Upstairs   Upstairs
+
+	// Guest mode is a switch that can be used to turn off certain automations
+	// when guests are over.
+	GuestMode *hal.BinarySensor
 }
 
 type DiningRoom struct {
@@ -104,6 +108,8 @@ func NewMarnixkade() *Marnixkade {
 			LuxSensor:      hal.NewLightSensor("sensor.presence_sensor_fp2_b6d8_light_sensor_light_level"),
 			PresenceSensor: hal.NewBinarySensor("binary_sensor.presence_sensor_fp2_b6d8_presence_sensor_1"),
 		},
+
+		GuestMode: hal.NewBinarySensor("input_boolean.guest_mode"),
 	}
 
 	// Walk the struct and find/register all entities
@@ -154,6 +160,10 @@ func NewMarnixkade() *Marnixkade {
 
 		halautomations.NewSensorsTriggersLights().
 			WithName("Study lights").
+			WithCondition(func() bool {
+				// Disable automation if guest mode is on
+				return !home.GuestMode.IsOn()
+			}).
 			WithSensors(home.Study.PresenceSensor).
 			WithLights(home.Study.Lights).
 			TurnsOffAfter(5*time.Minute),
