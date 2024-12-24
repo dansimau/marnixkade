@@ -212,18 +212,8 @@ func NewMarnixkade() *Marnixkade {
 
 		halautomations.NewSensorsTriggerLights().
 			WithName("Downstairs lights").
-			// Night mode turns on the lights with a low brightness
-			WithConditionScene(func() bool {
-				return home.NightMode.IsOn()
-			}, map[string]any{
-				"brightness": 1,
-			}).
-			// Otherwise full brightness
-			WithConditionScene(func() bool {
-				return !home.NightMode.IsOn()
-			}, map[string]any{
-				"brightness": 255,
-			}).
+			WithConditionScene(func() bool { return home.NightMode.IsOn() }, nightLight).
+			WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
 			WithSensors(
 				home.Downstairs.MotionSensorStairs,
 				home.Downstairs.MotionSensorWindow,
@@ -278,18 +268,8 @@ func NewMarnixkade() *Marnixkade {
 
 		halautomations.NewSensorsTriggerLights().
 			WithName("Study closet lights").
-			// Night mode turns on the lights with a low brightness
-			WithConditionScene(func() bool {
-				return home.NightMode.IsOn()
-			}, map[string]any{
-				"brightness": 50, // 20% brightness
-			}).
-			// Otherwise full brightness
-			WithConditionScene(func() bool {
-				return !home.NightMode.IsOn()
-			}, map[string]any{
-				"brightness": 255,
-			}).
+			WithConditionScene(func() bool { return home.NightMode.IsOn() }, nightLight).
+			WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
 			WithSensors(home.Study.ClosetMotionSensor).
 			WithLights(home.Study.ClosetLights).
 			TurnsOffAfter(1*time.Minute),
