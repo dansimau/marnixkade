@@ -13,6 +13,7 @@ type Marnixkade struct {
 	*hal.Connection
 
 	DiningRoom DiningRoom
+	Downstairs Downstairs
 	Bedroom    Bedroom
 	Hallway    Hallway
 	Kitchen    Kitchen
@@ -44,6 +45,13 @@ type Bedroom struct {
 type DiningRoom struct {
 	Lights         *hal.Light
 	PresenceSensor *hal.BinarySensor // Aqara FP2 (Bar)
+}
+
+type Downstairs struct {
+	AllLights *hal.Light
+
+	MotionSensorStairs *hal.BinarySensor
+	MotionSensorWindow *hal.BinarySensor
 }
 
 type Hallway struct {
@@ -105,6 +113,12 @@ func NewMarnixkade() *Marnixkade {
 		DiningRoom: DiningRoom{
 			Lights:         hal.NewLight("light.dining"),
 			PresenceSensor: hal.NewBinarySensor("binary_sensor.presence_sensor_fp2_b6d8_presence_sensor_2"),
+		},
+		Downstairs: Downstairs{
+			AllLights: hal.NewLight("light.downstairs"),
+
+			MotionSensorStairs: hal.NewBinarySensor("binary_sensor.stairs_sensor_motion"),
+			MotionSensorWindow: hal.NewBinarySensor("binary_sensor.downstairs_sensor_motion"),
 		},
 		Hallway: Hallway{
 			Lights:       hal.NewLight("light.front_hallway"),
@@ -170,7 +184,28 @@ func NewMarnixkade() *Marnixkade {
 			TurnsOffAfter(15*time.Minute),
 
 		halautomations.NewSensorsTriggerLights().
-			WithName("Hallway lights").
+			WithName("Downstairs lights").
+			// Night mode turns on the lights with a low brightness
+			WithConditionScene(func() bool {
+				return home.NightMode.IsOn()
+			}, map[string]any{
+				"brightness": 1,
+			}).
+			// Otherwise full brightness
+			WithConditionScene(func() bool {
+				return !home.NightMode.IsOn()
+			}, map[string]any{
+				"brightness": 255,
+			}).
+			WithSensors(
+				home.Downstairs.MotionSensorStairs,
+				home.Downstairs.MotionSensorWindow,
+			).
+			WithLights(home.Downstairs.AllLights).
+			TurnsOffAfter(5*time.Minute),
+
+		halautomations.NewSensorsTriggerLights().
+			WithName("Front hallway lights").
 			WithSensors(home.Hallway.MotionSensor).
 			WithLights(home.Hallway.Lights).
 			TurnsOffAfter(5*time.Minute),
