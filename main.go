@@ -23,10 +23,16 @@ type Marnixkade struct {
 	// Guest mode is a switch that can be used to turn off certain automations
 	// when guests are over.
 	GuestMode *hal.BinarySensor
+
+	// NightMode is the "bed time" switch that controls lights downstairs and
+	// in the bedrooms.
+	NightMode *hal.BinarySensor
 }
 
 type Bedroom struct {
-	Lights        *hal.Light
+	AllLights *hal.Light
+
+	MainLights    *hal.Light
 	GoldenSunLamp *hal.Light
 	ClosetLights  hal.LightGroup
 	BedLights     *hal.Light
@@ -84,7 +90,8 @@ func NewMarnixkade() *Marnixkade {
 		Connection: hal.NewConnection(*cfg),
 
 		Bedroom: Bedroom{
-			Lights:        hal.NewLight("light.bedroom_lights"),
+			AllLights:     hal.NewLight("light.bedroom"),
+			MainLights:    hal.NewLight("light.bedroom_lights"),
 			GoldenSunLamp: hal.NewLight("light.golden_sun"),
 			ClosetLights: hal.LightGroup{
 				hal.NewLight("light.bedroom_closet_left"),
@@ -93,7 +100,7 @@ func NewMarnixkade() *Marnixkade {
 			BedLights: hal.NewLight("light.bed_strip"),
 
 			ClosetMotionSensor: hal.NewBinarySensor("binary_sensor.bedroom_motion"),
-			// PresenceSensor:     hal.NewBinarySensor("binary_sensor."),
+			PresenceSensor:     hal.NewBinarySensor("binary_sensor.presence_sensor_fp2_1a4f_presence_sensor_1"),
 		},
 		DiningRoom: DiningRoom{
 			Lights:         hal.NewLight("light.dining"),
@@ -134,6 +141,7 @@ func NewMarnixkade() *Marnixkade {
 		},
 
 		GuestMode: hal.NewBinarySensor("input_boolean.guest_mode"),
+		NightMode: hal.NewBinarySensor("input_boolean.bedtime_switch"),
 	}
 
 	// Walk the struct and find/register all entities
@@ -141,6 +149,20 @@ func NewMarnixkade() *Marnixkade {
 
 	// Register automations
 	home.RegisterAutomations(
+		halautomations.NewSensorsTriggerLights().
+			WithName("Bedroom lights").
+			WithCondition(func() bool {
+				return !home.NightMode.IsOn() // Don't auto turn on lights if night mode is on
+			}).
+			WithSensors(home.Bedroom.PresenceSensor).
+			TurnsOnLights(
+				home.Bedroom.MainLights,
+				home.Bedroom.GoldenSunLamp,
+				home.Bedroom.BedLights,
+			).
+			TurnsOffLights(home.Bedroom.AllLights).
+			TurnsOffAfter(5*time.Minute),
+
 		halautomations.NewSensorsTriggerLights().
 			WithName("Dining table lights").
 			WithSensors(home.DiningRoom.PresenceSensor).
