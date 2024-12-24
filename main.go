@@ -178,6 +178,24 @@ func NewMarnixkade() *Marnixkade {
 			TurnsOffAfter(5*time.Minute),
 
 		halautomations.NewSensorsTriggerLights().
+			WithName("Bedroom closet lights").
+			// Night mode turns on the lights with a low brightness
+			WithConditionScene(func() bool {
+				return home.NightMode.IsOn()
+			}, map[string]any{
+				"brightness": 1,
+			}).
+			// Otherwise full brightness
+			WithConditionScene(func() bool {
+				return !home.NightMode.IsOn()
+			}, map[string]any{
+				"brightness": 255,
+			}).
+			WithSensors(home.Bedroom.ClosetMotionSensor).
+			WithLights(home.Bedroom.ClosetLights).
+			TurnsOffAfter(1*time.Minute),
+
+		halautomations.NewSensorsTriggerLights().
 			WithName("Dining table lights").
 			WithSensors(home.DiningRoom.PresenceSensor).
 			WithLights(home.DiningRoom.Lights).
