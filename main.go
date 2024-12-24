@@ -77,9 +77,12 @@ type LivingRoom struct {
 }
 
 type Study struct {
-	Lights         *hal.Light       // Main lights
-	LuxSensor      *hal.LightSensor // Aqara FP2 (Study)
-	PresenceSensor *hal.Entity      // Aqara FP2 (Study)
+	Lights       *hal.Light // Main lights
+	ClosetLights hal.LightGroup
+
+	ClosetMotionSensor *hal.BinarySensor
+	LuxSensor          *hal.LightSensor // Aqara FP2 (Study)
+	PresenceSensor     *hal.Entity      // Aqara FP2 (Study)
 }
 
 type Upstairs struct {
@@ -145,9 +148,15 @@ func NewMarnixkade() *Marnixkade {
 			PresenceSensor: hal.NewBinarySensor("binary_sensor.presence_sensor_fp2_b6d8_presence_sensor_3"),
 		},
 		Study: Study{
-			Lights:         hal.NewLight("light.study_lights"),
-			PresenceSensor: hal.NewEntity("binary_sensor.presence_sensor_fp2_11ad_presence_sensor_1"),
-			LuxSensor:      hal.NewLightSensor("sensor.presence_sensor_fp2_11ad_light_sensor_light_level"),
+			Lights: hal.NewLight("light.study_lights"),
+			ClosetLights: hal.LightGroup{
+				hal.NewLight("light.study_closet_left"),
+				hal.NewLight("light.study_closet_right"),
+			},
+
+			ClosetMotionSensor: hal.NewBinarySensor("binary_sensor.study_motion_sensor_motion"),
+			PresenceSensor:     hal.NewEntity("binary_sensor.presence_sensor_fp2_11ad_presence_sensor_1"),
+			LuxSensor:          hal.NewLightSensor("sensor.presence_sensor_fp2_11ad_light_sensor_light_level"),
 		},
 		Upstairs: Upstairs{
 			LuxSensor:      hal.NewLightSensor("sensor.presence_sensor_fp2_b6d8_light_sensor_light_level"),
@@ -268,9 +277,30 @@ func NewMarnixkade() *Marnixkade {
 			TurnsOffAfter(5*time.Minute),
 
 		halautomations.NewSensorsTriggerLights().
+			WithName("Study closet lights").
+			// Night mode turns on the lights with a low brightness
+			WithConditionScene(func() bool {
+				return home.NightMode.IsOn()
+			}, map[string]any{
+				"brightness": 50, // 20% brightness
+			}).
+			// Otherwise full brightness
+			WithConditionScene(func() bool {
+				return !home.NightMode.IsOn()
+			}, map[string]any{
+				"brightness": 255,
+			}).
+			WithSensors(home.Study.ClosetMotionSensor).
+			WithLights(home.Study.ClosetLights).
+			TurnsOffAfter(1*time.Minute),
+
+		halautomations.NewSensorsTriggerLights().
 			WithName("Upstairs bookshelf lamps").
 			WithSensors(home.Upstairs.PresenceSensor).
-			WithLights(home.LivingRoom.MoroccanLamp, home.LivingRoom.SaltLamp).
+			WithLights(
+				home.LivingRoom.MoroccanLamp,
+				home.LivingRoom.SaltLamp,
+			).
 			TurnsOffAfter(15*time.Minute),
 
 		halautomations.NewPrintDebug("Debug", hal.NewEntity("event.main_switch_button_1")),
