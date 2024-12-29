@@ -25,6 +25,7 @@ func (d *DiningRoom) Automations(home *Marnixkade) []hal.Automation {
 			WithName("Dining table lights").
 			WithSensors(home.DiningRoom.PresenceSensor).
 			WithLights(home.DiningRoom.Lights).
+			SetScene(brightLight).
 			TurnsOffAfter(15 * time.Minute),
 	}
 }
