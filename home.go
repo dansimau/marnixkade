@@ -22,11 +22,11 @@ type Marnixkade struct {
 
 	// Guest mode is a switch that can be used to turn off certain automations
 	// when guests are over.
-	GuestMode *hal.BinarySensor
+	GuestMode *hal.InputBoolean
 
 	// NightMode is the "bed time" switch that controls lights downstairs and
 	// in the bedrooms.
-	NightMode *hal.BinarySensor
+	NightMode *hal.InputBoolean
 }
 
 func NewMarnixkade() *Marnixkade {
@@ -48,8 +48,8 @@ func NewMarnixkade() *Marnixkade {
 		Study:      newStudy(),
 		Upstairs:   newUpstairs(),
 
-		GuestMode: hal.NewBinarySensor("input_boolean.guest_mode"),
-		NightMode: hal.NewBinarySensor("input_boolean.bedtime_switch"),
+		GuestMode: hal.NewInputBoolean("input_boolean.guest_mode"),
+		NightMode: hal.NewInputBoolean("input_boolean.bedtime_switch"),
 	}
 
 	// Walk the struct and find/register all entities

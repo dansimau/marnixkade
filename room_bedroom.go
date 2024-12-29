@@ -58,5 +58,25 @@ func (b *Bedroom) Automations(home *Marnixkade) []hal.Automation {
 			WithSensors(home.Bedroom.ClosetMotionSensor).
 			WithLights(home.Bedroom.ClosetLights).
 			TurnsOffAfter(1 * time.Minute),
+
+		halautomations.NewTimer("Detect person in bed").
+			WithEntities(home.Bedroom.PresenceSensor).
+			Condition(home.Bedroom.PresenceSensor.IsOn).
+			Duration(15 * time.Minute).
+			Run(func() {
+				if home.Bedroom.PresenceSensor.IsOn() {
+					home.NightMode.TurnOn()
+				}
+			}),
+
+		halautomations.NewTimer("Detect everyone out of bed").
+			WithEntities(home.Bedroom.PresenceSensor).
+			Condition(home.Bedroom.PresenceSensor.IsOff).
+			Duration(15 * time.Minute).
+			Run(func() {
+				if home.Bedroom.PresenceSensor.IsOff() {
+					home.NightMode.TurnOff()
+				}
+			}),
 	}
 }
