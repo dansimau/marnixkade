@@ -44,7 +44,7 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 		hal.NewAutomation().
 			WithName("Living room lights").
 			WithEntities(home.LivingRoom.PresenceSensor).
-			WithAction(func() {
+			WithAction(func(_ hal.EntityInterface) {
 				// Ignore presence changes if someone is actively watching TV or playing music
 				if home.LivingRoom.Onkyo.IsOn() {
 					return

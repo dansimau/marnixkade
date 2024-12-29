@@ -28,6 +28,7 @@ func (u *Upstairs) Automations(home *Marnixkade) []hal.Automation {
 				home.LivingRoom.MoroccanLamp,
 				home.LivingRoom.SaltLamp,
 			).
+			WithBrightness(64).
 			TurnsOffAfter(15 * time.Minute),
 	}
 }
