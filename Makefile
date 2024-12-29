@@ -1,6 +1,6 @@
 .PHONY: out
 out:
-	go run main.go
+	go run .
 
 .PHONY: docker
 docker:
