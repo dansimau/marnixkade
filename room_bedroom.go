@@ -57,7 +57,7 @@ func (b *Bedroom) Automations(home *Marnixkade) []hal.Automation {
 			WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
 			WithSensors(home.Bedroom.ClosetMotionSensor).
 			WithLights(home.Bedroom.ClosetLights).
-			TurnsOffAfter(1 * time.Minute),
+			TurnsOffAfter(30 * time.Second),
 
 		halautomations.NewTimer("Detect person in bed").
 			WithEntities(home.Bedroom.PresenceSensor).

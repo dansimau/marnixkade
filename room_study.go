@@ -35,8 +35,7 @@ func (s *Study) Automations(home *Marnixkade) []hal.Automation {
 		halautomations.NewSensorsTriggerLights().
 			WithName("Study lights").
 			WithCondition(func() bool {
-				// Disable automation if guest mode is on
-				return !home.GuestMode.IsOn()
+				return !home.NightMode.IsOn() // Don't auto turn on lights if night mode is on
 			}).
 			WithSensors(home.Study.PresenceSensor).
 			WithLights(home.Study.Lights).
@@ -48,6 +47,6 @@ func (s *Study) Automations(home *Marnixkade) []hal.Automation {
 			WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
 			WithSensors(home.Study.ClosetMotionSensor).
 			WithLights(home.Study.ClosetLights).
-			TurnsOffAfter(1 * time.Minute),
+			TurnsOffAfter(30 * time.Second),
 	}
 }
