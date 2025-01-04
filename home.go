@@ -69,6 +69,7 @@ func NewMarnixkade() *Marnixkade {
 	home.RegisterAutomations(home.DiningRoom.Automations(home)...)
 	home.RegisterAutomations(home.Downstairs.Automations(home)...)
 	home.RegisterAutomations(home.Hallway.Automations(home)...)
+	home.RegisterAutomations(home.Kitchen.Automations(home)...)
 	home.RegisterAutomations(home.LivingRoom.Automations(home)...)
 	home.RegisterAutomations(home.StorageRoom.Automations(home)...)
 	home.RegisterAutomations(home.Study.Automations(home)...)
