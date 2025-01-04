@@ -16,7 +16,7 @@ type Bathroom struct {
 func newBathroom() Bathroom {
 	return Bathroom{
 		Fan:          hal.NewLight("light.bathroom_fan"),
-		MotionSensor: hal.NewBinarySensor("binary_sensor.bathroom_motion"),
+		MotionSensor: hal.NewBinarySensor("binary_sensor.bathroom_sensor_motion"),
 		Light:        hal.NewLight("light.bathroom"),
 	}
 }
