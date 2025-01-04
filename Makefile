@@ -1,5 +1,6 @@
 .PHONY: out
 out:
+	go mod vendor
 	go run .
 
 .PHONY: docker
