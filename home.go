@@ -11,14 +11,16 @@ import (
 type Marnixkade struct {
 	*hal.Connection
 
-	DiningRoom DiningRoom
-	Downstairs Downstairs
-	Bedroom    Bedroom
-	Hallway    Hallway
-	Kitchen    Kitchen
-	LivingRoom LivingRoom
-	Study      Study
-	Upstairs   Upstairs
+	Bathroom    Bathroom
+	Bedroom     Bedroom
+	DiningRoom  DiningRoom
+	Downstairs  Downstairs
+	Hallway     Hallway
+	Kitchen     Kitchen
+	LivingRoom  LivingRoom
+	StorageRoom StorageRoom
+	Study       Study
+	Upstairs    Upstairs
 
 	// Guest mode is a switch that can be used to turn off certain automations
 	// when guests are over.
@@ -27,6 +29,9 @@ type Marnixkade struct {
 	// NightMode is the "bed time" switch that controls lights downstairs and
 	// in the bedrooms.
 	NightMode *hal.InputBoolean
+
+	// NightModeUpstairs is the "bed time" switch that controls lights upstairs.
+	NightModeUpstairs *hal.InputBoolean
 }
 
 func NewMarnixkade() *Marnixkade {
@@ -39,28 +44,33 @@ func NewMarnixkade() *Marnixkade {
 	home := &Marnixkade{
 		Connection: hal.NewConnection(*cfg),
 
-		Bedroom:    newBedroom(),
-		DiningRoom: newDiningRoom(),
-		Downstairs: newDownstairs(),
-		Hallway:    newHallway(),
-		Kitchen:    newKitchen(),
-		LivingRoom: newLivingRoom(),
-		Study:      newStudy(),
-		Upstairs:   newUpstairs(),
+		Bathroom:    newBathroom(),
+		Bedroom:     newBedroom(),
+		DiningRoom:  newDiningRoom(),
+		Downstairs:  newDownstairs(),
+		Hallway:     newHallway(),
+		Kitchen:     newKitchen(),
+		LivingRoom:  newLivingRoom(),
+		StorageRoom: newStorageRoom(),
+		Study:       newStudy(),
+		Upstairs:    newUpstairs(),
 
-		GuestMode: hal.NewInputBoolean("input_boolean.guest_mode"),
-		NightMode: hal.NewInputBoolean("input_boolean.bedtime_switch"),
+		GuestMode:         hal.NewInputBoolean("input_boolean.guest_mode"),
+		NightMode:         hal.NewInputBoolean("input_boolean.bedtime_switch"),
+		NightModeUpstairs: hal.NewInputBoolean("input_boolean.nighttime_upstairs_switch"),
 	}
 
 	// Walk the struct and find/register all entities
 	home.FindEntities(home)
 
 	// Register automations
+	home.RegisterAutomations(home.Bathroom.Automations(home)...)
 	home.RegisterAutomations(home.Bedroom.Automations(home)...)
 	home.RegisterAutomations(home.DiningRoom.Automations(home)...)
 	home.RegisterAutomations(home.Downstairs.Automations(home)...)
 	home.RegisterAutomations(home.Hallway.Automations(home)...)
 	home.RegisterAutomations(home.LivingRoom.Automations(home)...)
+	home.RegisterAutomations(home.StorageRoom.Automations(home)...)
 	home.RegisterAutomations(home.Study.Automations(home)...)
 	home.RegisterAutomations(home.Upstairs.Automations(home)...)
 
