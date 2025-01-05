@@ -11,6 +11,8 @@ type Bathroom struct {
 	Fan          *hal.Light
 	MotionSensor *hal.BinarySensor
 	Light        *hal.Light
+
+	SwitchOffButton *hal.Button
 }
 
 func newBathroom() Bathroom {
@@ -18,6 +20,8 @@ func newBathroom() Bathroom {
 		Fan:          hal.NewLight("light.bathroom_fan"),
 		MotionSensor: hal.NewBinarySensor("binary_sensor.bathroom_sensor_motion"),
 		Light:        hal.NewLight("light.bathroom"),
+
+		SwitchOffButton: hal.NewButton("event.bathroom_switch_button_4"),
 	}
 }
 
@@ -27,6 +31,15 @@ func (room *Bathroom) LightIsOff() bool {
 
 func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 	return []hal.Automation{
+		hal.NewAutomation().
+			WithName("Button switch off bathroom fan").
+			WithEntities(room.SwitchOffButton).
+			WithAction(func(trigger hal.EntityInterface) {
+				if room.SwitchOffButton.PressedTimes() > 1 {
+					room.Fan.TurnOff()
+				}
+			}),
+
 		halautomations.NewSensorsTriggerLights().
 			WithName("Bathroom light").
 			WithSensors(room.MotionSensor).
