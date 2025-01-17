@@ -319,7 +319,7 @@ func (a *SensorsTriggerLights) handleSensorTriggered() {
 	}
 }
 
-func (a *SensorsTriggerLights) handleLightTriggered() {
+func (a *SensorsTriggerLights) handleLightTriggered(trigger hal.EntityInterface) {
 	// Light was either turned on or off, or brightness changed or whatever,
 	// in which case we want to stop any further automations since the user has
 	// overridden it and we want to respect that.
@@ -328,7 +328,7 @@ func (a *SensorsTriggerLights) handleLightTriggered() {
 
 	if a.humanOverrideFor != nil {
 		if a.lightsOn() {
-			slog.Info("Setting human override for", "duration", a.humanOverrideFor.String())
+			slog.Info("Setting human override for", "duration", a.humanOverrideFor.String(), "triggeringEvent", trigger)
 			a.humanOverrideTimer.Start(nil, *a.humanOverrideFor)
 		} else {
 			a.humanOverrideTimer.Cancel()
@@ -345,7 +345,7 @@ func (a *SensorsTriggerLights) Action(trigger hal.EntityInterface) {
 	if a.sensorTriggered(trigger) {
 		a.handleSensorTriggered()
 	} else if a.lightTriggered(trigger) {
-		a.handleLightTriggered()
+		a.handleLightTriggered(trigger)
 	}
 }
 
