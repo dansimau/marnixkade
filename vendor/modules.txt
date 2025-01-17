@@ -6,7 +6,6 @@ github.com/dansimau/hal/hassws
 github.com/dansimau/hal/homeassistant
 github.com/dansimau/hal/perf
 github.com/dansimau/hal/store
-github.com/dansimau/hal/timerutil
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
