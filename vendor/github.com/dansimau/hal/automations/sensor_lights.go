@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dansimau/hal"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type ConditionScene struct {
@@ -328,7 +329,7 @@ func (a *SensorsTriggerLights) handleLightTriggered(trigger hal.EntityInterface)
 
 	if a.humanOverrideFor != nil {
 		if a.lightsOn() {
-			slog.Info("Setting human override for", "duration", a.humanOverrideFor.String(), "triggeringEvent", trigger)
+			slog.Info("Setting human override for", "duration", a.humanOverrideFor.String(), "triggeringEvent", spew.Sdump(trigger))
 			a.humanOverrideTimer.Start(nil, *a.humanOverrideFor)
 		} else {
 			a.humanOverrideTimer.Cancel()
