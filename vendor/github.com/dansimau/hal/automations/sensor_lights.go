@@ -192,7 +192,7 @@ func (a *SensorsTriggerLights) startTurnOffTimer() {
 	}
 
 	a.turnOffTimer.Start(a.turnOffLights, *a.turnsOffAfter)
-	a.log.Debug("Turn off timer set for", "time", time.Now().Add(*a.turnsOffAfter))
+	a.log.Debug("Turn off timer set for", "time", time.Now().Add(*a.turnsOffAfter), "automation", a.name)
 
 	a.startDimLightsTimer()
 }
@@ -203,7 +203,7 @@ func (a *SensorsTriggerLights) stopTurnOffTimer() {
 
 func (a *SensorsTriggerLights) stopDimLightsTimer() {
 	if a.dimLightsTimer.IsRunning() {
-		slog.Info("Cancelling dim lights timer")
+		a.log.Info("Cancelling dim lights timer", "automation", a.name)
 	}
 
 	a.dimLightsTimer.Cancel()
