@@ -329,7 +329,7 @@ func (a *SensorsTriggerLights) handleLightTriggered(trigger hal.EntityInterface)
 
 	if a.humanOverrideFor != nil {
 		if a.lightsOn() {
-			slog.Info("Setting human override for", "duration", a.humanOverrideFor.String(), "triggeringEvent", spew.Sdump(trigger))
+			slog.Info("Setting human override", "automation", a.name, "duration", a.humanOverrideFor.String(), "triggeringEvent", spew.Sdump(trigger))
 			a.humanOverrideTimer.Start(nil, *a.humanOverrideFor)
 		} else {
 			a.humanOverrideTimer.Cancel()
