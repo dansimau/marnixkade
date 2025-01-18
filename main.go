@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelInfo)
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	if err := NewMarnixkade().Start(); err != nil {
 		slog.Error("Error starting home", "error", err)
