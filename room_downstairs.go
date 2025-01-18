@@ -34,7 +34,7 @@ func (d *Downstairs) Automations(home *Marnixkade) []hal.Automation {
 				home.Downstairs.MotionSensorWindow,
 			).
 			WithLights(home.Downstairs.AllLights).
-			TurnsOffAfter(5 * time.Minute).
-			WithHumanOverrideFor(2 * 60 * time.Minute),
+			TurnsOffAfter(5 * time.Minute),
+		// WithHumanOverrideFor(2 * 60 * time.Minute),
 	}
 }

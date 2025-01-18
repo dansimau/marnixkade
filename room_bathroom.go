@@ -46,8 +46,8 @@ func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 			WithConditionScene(func() bool { return home.NightMode.IsOn() }, nightLight).
 			WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
 			WithLights(room.Light).
-			TurnsOffAfter(15 * time.Minute).
-			WithHumanOverrideFor(40 * time.Minute),
+			TurnsOffAfter(15 * time.Minute),
+		// WithHumanOverrideFor(40 * time.Minute),
 
 		// Turn on bathroom fan 1 minute after lights go on (i.e. if someone is
 		// lingering in the bathroom)
