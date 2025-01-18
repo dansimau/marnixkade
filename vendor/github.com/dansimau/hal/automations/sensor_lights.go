@@ -232,7 +232,7 @@ func (a *SensorsTriggerLights) turnOnLights() {
 		attributes = map[string]any{"brightness": a.brightness}
 	}
 
-	a.log.Info("Turning on lights", "attributesx", attributes)
+	a.log.Info("Turning on lights", "attributes", attributes)
 
 	for _, light := range a.turnsOnLights {
 		if err := light.TurnOn(attributes); err != nil {
