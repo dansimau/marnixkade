@@ -1,3 +1,6 @@
+# github.com/benbjohnson/clock v1.3.5
+## explicit; go 1.15
+github.com/benbjohnson/clock
 # github.com/dansimau/hal v0.0.0-20241204133341-b5e97b88b9fb => ../hal
 ## explicit; go 1.22.10
 github.com/dansimau/hal
