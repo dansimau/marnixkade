@@ -7,6 +7,5 @@ RUN upx ./app
 
 FROM scratch
 COPY --from=build /build/app /app
-COPY hal.yaml /
 
 ENTRYPOINT ["/app"]
