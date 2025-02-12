@@ -8,7 +8,7 @@ import (
 )
 
 type Bedroom struct {
-	AllLights *hal.Light
+	AllLights hal.LightGroup
 
 	MainLights    *hal.Light
 	GoldenSunLamp *hal.Light
@@ -20,15 +20,27 @@ type Bedroom struct {
 }
 
 func newBedroom() Bedroom {
+	bedLights := hal.NewLight("light.bed_strip")
+	closetLights := hal.LightGroup{
+		hal.NewLight("light.bedroom_closet_left"),
+		hal.NewLight("light.bedroom_closet_right"),
+	}
+	goldenSunLamp := hal.NewLight("light.golden_sun")
+	mainLights := hal.NewLight("light.bedroom_lights")
+
+	allLights := hal.LightGroup{
+		mainLights,
+		goldenSunLamp,
+		closetLights,
+		bedLights,
+	}
+
 	return Bedroom{
-		AllLights:     hal.NewLight("light.bedroom"),
-		MainLights:    hal.NewLight("light.bedroom_lights"),
-		GoldenSunLamp: hal.NewLight("light.golden_sun"),
-		ClosetLights: hal.LightGroup{
-			hal.NewLight("light.bedroom_closet_left"),
-			hal.NewLight("light.bedroom_closet_right"),
-		},
-		BedLights: hal.NewLight("light.bed_strip"),
+		AllLights:     allLights,
+		MainLights:    mainLights,
+		GoldenSunLamp: goldenSunLamp,
+		ClosetLights:  closetLights,
+		BedLights:     bedLights,
 
 		ClosetMotionSensor: hal.NewBinarySensor("binary_sensor.bedroom_motion"),
 		PresenceSensor:     hal.NewBinarySensor("binary_sensor.presence_sensor_fp2_1a4f_presence_sensor_1"),
