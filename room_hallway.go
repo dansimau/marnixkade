@@ -25,6 +25,6 @@ func (h *Hallway) Automations(home *Marnixkade) []hal.Automation {
 			WithName("Front hallway lights").
 			WithSensors(home.Hallway.MotionSensor).
 			WithLights(home.Hallway.Lights).
-			TurnsOffAfter(5 * time.Minute),
+			TurnsOffAfter(1 * time.Minute),
 	}
 }
