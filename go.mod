@@ -2,12 +2,14 @@ module github.com/dansimau/marnixkade
 
 go 1.22.10
 
-require github.com/davecgh/go-spew v1.1.1 // indirect
-
-require github.com/dansimau/hal v0.0.0-20241204133341-b5e97b88b9fb
+require (
+	github.com/dansimau/hal v0.0.0-20241204133341-b5e97b88b9fb
+	github.com/lmittmann/tint v1.0.7
+)
 
 require (
 	github.com/benbjohnson/clock v1.3.5 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/glebarez/sqlite v1.11.0 // indirect

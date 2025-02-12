@@ -3,23 +3,16 @@ package main
 import (
 	"log/slog"
 	"os"
-	"time"
+
+	"github.com/lmittmann/tint"
 )
 
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			if a.Key == slog.TimeKey {
-				return slog.Attr{
-					Key:   slog.TimeKey,
-					Value: slog.AnyValue(time.Now().Format("2006-01-02 15:04:05.000")),
-				}
-			}
-			return a
-		},
-	})))
+	slog.SetDefault(slog.New(
+		tint.NewHandler(os.Stderr, &tint.Options{
+			Level: slog.LevelDebug,
+		}),
+	))
 
 	if err := NewMarnixkade().Start(); err != nil {
 		slog.Error("Error starting home", "error", err)
