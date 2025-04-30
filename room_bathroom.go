@@ -60,11 +60,11 @@ func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 				room.Fan.TurnOn()
 			}),
 
-		// Turn bathroom fan off 40 mins after lights go off
+		// Turn bathroom fan off automatically after a while
 		halautomations.NewTimer("Bathroom fan off timer").
 			WithEntities(room.Light).
 			Condition(room.LightIsOff).
-			Duration(40 * time.Minute).
+			Duration(90 * time.Minute).
 			Run(func() {
 				room.Fan.TurnOff()
 			}),
