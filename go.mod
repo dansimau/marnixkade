@@ -3,7 +3,7 @@ module github.com/dansimau/marnixkade
 go 1.22.10
 
 require (
-	github.com/dansimau/hal v0.0.0-20241204133341-b5e97b88b9fb
+	github.com/dansimau/hal v0.0.0-20250927094038-915d4fb6f4ad
 	github.com/lmittmann/tint v1.0.7
 )
 
