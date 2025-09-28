@@ -1,9 +1,8 @@
 package hal
 
 import (
-	"log/slog"
-
 	"github.com/dansimau/hal/hassws"
+	"github.com/dansimau/hal/logger"
 )
 
 // InputBoolean is a virtual switch that can be turned on or off.
@@ -24,13 +23,14 @@ func (s *InputBoolean) IsOn() bool {
 }
 
 func (s *InputBoolean) TurnOn(attributes ...map[string]any) error {
+	entityID := s.GetID()
 	if s.connection == nil {
-		slog.Error("InputBoolean not registered", "entity", s.GetID())
+		logger.Error("InputBoolean not registered", entityID)
 
 		return ErrEntityNotRegistered
 	}
 
-	slog.Debug("Turning on virtual switch", "entity", s.GetID())
+	logger.Debug("Turning on virtual switch", entityID)
 
 	data := map[string]any{
 		"entity_id": []string{s.GetID()},
@@ -49,20 +49,22 @@ func (s *InputBoolean) TurnOn(attributes ...map[string]any) error {
 		Data:    data,
 	})
 	if err != nil {
-		slog.Error("Error turning on virtual switch", "entity", s.GetID(), "error", err)
+		entityID := s.GetID()
+		logger.Error("Error turning on virtual switch", entityID, "error", err)
 	}
 
 	return err
 }
 
 func (s *InputBoolean) TurnOff() error {
+	entityID := s.GetID()
 	if s.connection == nil {
-		slog.Error("InputBoolean not registered", "entity", s.GetID())
+		logger.Error("InputBoolean not registered", entityID)
 
 		return ErrEntityNotRegistered
 	}
 
-	slog.Info("Turning off virtual switch", "entity", s.GetID())
+	logger.Info("Turning off virtual switch", entityID)
 
 	_, err := s.connection.CallService(hassws.CallServiceRequest{
 		Type:    hassws.MessageTypeCallService,
@@ -73,7 +75,8 @@ func (s *InputBoolean) TurnOff() error {
 		},
 	})
 	if err != nil {
-		slog.Error("Error turning off virtual switch", "entity", s.GetID(), "error", err)
+		entityID := s.GetID()
+		logger.Error("Error turning off virtual switch", entityID, "error", err)
 	}
 
 	return err

@@ -1,12 +1,13 @@
 # github.com/benbjohnson/clock v1.3.5
 ## explicit; go 1.15
 github.com/benbjohnson/clock
-# github.com/dansimau/hal v0.0.0-20250927094038-915d4fb6f4ad => ../hal
+# github.com/dansimau/hal v0.0.0-20250928164411-6c937ba11523 => ../hal
 ## explicit; go 1.22.10
 github.com/dansimau/hal
 github.com/dansimau/hal/automations
 github.com/dansimau/hal/hassws
 github.com/dansimau/hal/homeassistant
+github.com/dansimau/hal/logger
 github.com/dansimau/hal/metrics
 github.com/dansimau/hal/perf
 github.com/dansimau/hal/store

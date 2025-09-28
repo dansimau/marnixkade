@@ -2,11 +2,11 @@ package hal
 
 import (
 	"errors"
-	"log/slog"
 	"strings"
 
 	"github.com/dansimau/hal/hassws"
 	"github.com/dansimau/hal/homeassistant"
+	"github.com/dansimau/hal/logger"
 )
 
 type LightInterface interface {
@@ -39,13 +39,14 @@ func (l *Light) IsOn() bool {
 }
 
 func (l *Light) TurnOn(attributes ...map[string]any) error {
+	entityID := l.GetID()
 	if l.connection == nil {
-		slog.Error("Light not registered", "entity", l.GetID())
+		logger.Error("Light not registered", entityID)
 
 		return ErrEntityNotRegistered
 	}
 
-	slog.Debug("Turning on light", "entity", l.GetID())
+	logger.Debug("Turning on light", entityID)
 
 	data := map[string]any{
 		"entity_id": []string{l.GetID()},
@@ -64,7 +65,8 @@ func (l *Light) TurnOn(attributes ...map[string]any) error {
 		Data:    data,
 	})
 	if err != nil {
-		slog.Error("Error turning on light", "entity", l.GetID(), "error", err)
+		entityID := l.GetID()
+		logger.Error("Error turning on light", entityID, "error", err)
 
 		return err
 	}
@@ -73,13 +75,14 @@ func (l *Light) TurnOn(attributes ...map[string]any) error {
 }
 
 func (l *Light) TurnOff() error {
+	entityID := l.GetID()
 	if l.connection == nil {
-		slog.Error("Light not registered", "entity", l.GetID())
+		logger.Error("Light not registered", entityID)
 
 		return ErrEntityNotRegistered
 	}
 
-	slog.Info("Turning off light", "entity", l.GetID())
+	logger.Info("Turning off light", entityID)
 
 	data := map[string]any{
 		"entity_id": []string{l.GetID()},
@@ -92,7 +95,8 @@ func (l *Light) TurnOff() error {
 		Data:    data,
 	})
 	if err != nil {
-		slog.Error("Error turning off light", "entity", l.GetID(), "error", err)
+		entityID := l.GetID()
+		logger.Error("Error turning off light", entityID, "error", err)
 
 		return err
 	}

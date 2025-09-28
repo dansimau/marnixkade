@@ -2,12 +2,12 @@ package hal
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/dansimau/hal/hassws"
+	"github.com/dansimau/hal/logger"
 	"github.com/dansimau/hal/metrics"
 	"github.com/dansimau/hal/perf"
 	"github.com/dansimau/hal/store"
@@ -57,6 +57,9 @@ func NewConnection(cfg Config) *Connection {
 		Token: cfg.HomeAssistant.Token,
 	})
 
+	// Set the database on the global logger
+	logger.SetDefaultDatabase(db)
+
 	return &Connection{
 		config:         cfg,
 		db:             db,
@@ -82,7 +85,7 @@ func (h *Connection) FindEntities(v any) {
 // RegisterAutomations registers automations and binds them to the relevant entities.
 func (h *Connection) RegisterAutomations(automations ...Automation) {
 	for _, automation := range automations {
-		slog.Info("Registering automation", "Name", automation.Name())
+		logger.Info("Registering automation", "", "Name", automation.Name())
 
 		for _, entity := range automation.Entities() {
 			h.automations[entity.GetID()] = append(h.automations[entity.GetID()], automation)
@@ -93,7 +96,8 @@ func (h *Connection) RegisterAutomations(automations ...Automation) {
 // RegisterEntities registers entities and binds them to the connection.
 func (h *Connection) RegisterEntities(entities ...EntityInterface) {
 	for _, entity := range entities {
-		slog.Info("Registering entity", "EntityID", entity.GetID())
+		entityID := entity.GetID()
+		logger.Info("Registering entity", entityID)
 		entity.BindConnection(h)
 		h.entities[entity.GetID()] = entity
 
@@ -106,8 +110,9 @@ func (h *Connection) RegisterEntities(entities ...EntityInterface) {
 
 // Start connects to the Home Assistant websocket and starts listening for events.
 func (h *Connection) Start() error {
-	// Start metrics service
+	// Start services
 	h.metricsService.Start()
+	logger.StartDefault()
 
 	if err := h.homeAssistant.Connect(); err != nil {
 		return err
@@ -126,12 +131,13 @@ func (h *Connection) Start() error {
 
 func (h *Connection) Close() {
 	h.metricsService.Stop()
+	logger.StopDefault()
 	h.homeAssistant.Close()
 }
 
 func (h *Connection) syncStates() error {
 	defer perf.Timer(func(timeTaken time.Duration) {
-		slog.Info("Initial state sync complete", "duration", timeTaken)
+		logger.Info("Initial state sync complete", "", "duration", timeTaken)
 	})()
 
 	states, err := h.homeAssistant.GetStates()
@@ -145,7 +151,7 @@ func (h *Connection) syncStates() error {
 			continue
 		}
 
-		slog.Debug("Setting initial state", "EntityID", state.EntityID, "State", state)
+		logger.Debug("Setting initial state", state.EntityID, "State", state)
 
 		entity.SetState(state)
 	}
@@ -157,7 +163,7 @@ func (h *Connection) syncStates() error {
 // entity and fire any automations listening for state changes to this entity.
 func (h *Connection) StateChangeEvent(event hassws.EventMessage) {
 	defer perf.Timer(func(timeTaken time.Duration) {
-		slog.Debug("Tick processing time", "duration", timeTaken)
+		logger.Debug("Tick processing time", event.Event.EventData.EntityID, "duration", timeTaken)
 		// Record tick processing time metric
 		h.metricsService.RecordTimer(store.MetricTypeTickProcessingTime, timeTaken, event.Event.EventData.EntityID, "")
 	})()
@@ -167,14 +173,12 @@ func (h *Connection) StateChangeEvent(event hassws.EventMessage) {
 
 	entity, ok := h.entities[event.Event.EventData.EntityID]
 	if !ok {
-		slog.Debug("Entity not registered", "EntityID", event.Event.EventData.EntityID)
+		logger.Debug("Entity not registered", event.Event.EventData.EntityID)
 
 		return
 	}
 
-	slog.Debug("State changed for",
-		"EntityID", event.Event.EventData.EntityID,
-	)
+	logger.Debug("State changed for", event.Event.EventData.EntityID)
 
 	fmt.Fprintf(os.Stderr, "Diff:\n%s\n", cmp.Diff(event.Event.EventData.OldState, event.Event.EventData.NewState))
 
@@ -193,14 +197,14 @@ func (h *Connection) StateChangeEvent(event hassws.EventMessage) {
 
 	// Prevent loops by not running automations that originate from hal
 	if event.Event.Context.UserID == h.config.HomeAssistant.UserID {
-		slog.Debug("Skipping automation from own action", "EntityID", event.Event.EventData.EntityID)
+		logger.Debug("Skipping automation from own action", event.Event.EventData.EntityID)
 
 		return
 	}
 
 	// Dispatch automations
 	for _, automation := range h.automations[event.Event.EventData.EntityID] {
-		slog.Info("Running automation", "name", automation.Name())
+		logger.Info("Running automation", event.Event.EventData.EntityID, "name", automation.Name())
 		// Record automation triggered metric
 		h.metricsService.RecordCounter(store.MetricTypeAutomationTriggered, event.Event.EventData.EntityID, automation.Name())
 		automation.Action(entity)
