@@ -1,7 +1,7 @@
 # github.com/benbjohnson/clock v1.3.5
 ## explicit; go 1.15
 github.com/benbjohnson/clock
-# github.com/dansimau/hal v0.0.0-20250928164411-6c937ba11523 => ../hal
+# github.com/dansimau/hal v0.0.0-20250928223839-3b5138c4ac0b => ../hal
 ## explicit; go 1.22.10
 github.com/dansimau/hal
 github.com/dansimau/hal/automations
@@ -42,7 +42,7 @@ github.com/jinzhu/now
 # github.com/lmittmann/tint v1.0.7
 ## explicit; go 1.21
 github.com/lmittmann/tint
-# github.com/mattn/go-isatty v0.0.17
+# github.com/mattn/go-isatty v0.0.19
 ## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/nathan-osman/go-sunrise v1.1.0
@@ -51,7 +51,7 @@ github.com/nathan-osman/go-sunrise
 # github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec
 ## explicit; go 1.12
 github.com/remyoudompheng/bigfft
-# golang.org/x/sys v0.7.0
+# golang.org/x/sys v0.12.0
 ## explicit; go 1.17
 golang.org/x/sys/unix
 # golang.org/x/text v0.14.0

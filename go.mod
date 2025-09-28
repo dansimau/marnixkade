@@ -3,7 +3,7 @@ module github.com/dansimau/marnixkade
 go 1.22.10
 
 require (
-	github.com/dansimau/hal v0.0.0-20250928164411-6c937ba11523
+	github.com/dansimau/hal v0.0.0-20250928223839-3b5138c4ac0b
 	github.com/lmittmann/tint v1.0.7
 )
 
@@ -17,10 +17,10 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/nathan-osman/go-sunrise v1.1.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/gorm v1.25.12 // indirect
