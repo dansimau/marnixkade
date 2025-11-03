@@ -43,9 +43,9 @@ func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 		halautomations.NewSensorsTriggerLights().
 			WithName("Bathroom light").
 			WithSensors(room.MotionSensor).
-			// WithConditionScene(func() bool { return home.NightMode.IsOn() }, nightLight).
-			// WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
-			WithConditionScene(func() bool { return true }, spookyLight).
+			WithConditionScene(func() bool { return home.NightMode.IsOn() }, nightLight).
+			WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
+			// WithConditionScene(func() bool { return true }, spookyLight).
 			WithLights(room.Light).
 			TurnsOffAfter(15 * time.Minute),
 		// WithHumanOverrideFor(40 * time.Minute),
