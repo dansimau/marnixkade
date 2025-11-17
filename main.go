@@ -10,7 +10,7 @@ import (
 func main() {
 	slog.SetDefault(slog.New(
 		tint.NewHandler(os.Stderr, &tint.Options{
-			Level: slog.LevelDebug,
+			Level: slog.LevelInfo,
 		}),
 	))
 
