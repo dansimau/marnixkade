@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/dansimau/hal/logger"
 	"github.com/lmittmann/tint"
 )
 
@@ -13,6 +14,9 @@ func main() {
 			Level: slog.LevelInfo,
 		}),
 	))
+
+	// HAL database logger
+	logger.SetDefaultLevel(slog.LevelInfo)
 
 	if err := NewMarnixkade().Start(); err != nil {
 		slog.Error("Error starting home", "error", err)
