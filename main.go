@@ -19,9 +19,7 @@ func main() {
 	logger.SetDefaultLevel(slog.LevelInfo)
 
 	if err := NewMarnixkade().Start(); err != nil {
-		slog.Error("Error starting home", "error", err)
+		slog.Error("Error", "error", err)
 		os.Exit(1)
 	}
-
-	select {}
 }

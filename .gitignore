@@ -1,3 +1,4 @@
 build/
-sqlite.db
+hal.yaml
+sqlite.db*
 marnixkade
