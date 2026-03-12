@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/dansimau/hal"
@@ -44,7 +45,7 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 		hal.NewAutomation().
 			WithName("Living room lights").
 			WithEntities(home.LivingRoom.PresenceSensor).
-			WithAction(func(_ hal.EntityInterface) {
+			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
 				// Ignore presence changes if someone is actively watching TV or playing music
 				if home.LivingRoom.Onkyo.IsOn() {
 					return
@@ -55,17 +56,17 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 
 					// Only turn on the main lights if it's dark
 					if home.Upstairs.LuxSensor.Level() < 50 {
-						home.LivingRoom.MainLights.TurnOn()
+						home.LivingRoom.MainLights.TurnOnContext(ctx)
 					}
 
 					// Always turn on the archer/pratt lamps
-					home.LivingRoom.ArcherLamp.TurnOn()
-					home.LivingRoom.PrattLamp.TurnOn()
+					home.LivingRoom.ArcherLamp.TurnOnContext(ctx)
+					home.LivingRoom.PrattLamp.TurnOnContext(ctx)
 				} else {
-					home.LivingRoom.LightsOffTimer.Start(func() {
-						home.LivingRoom.MainLights.TurnOff()
-						home.LivingRoom.ArcherLamp.TurnOff()
-						home.LivingRoom.PrattLamp.TurnOff()
+					home.LivingRoom.LightsOffTimer.StartContext(ctx, func(ctx context.Context) {
+						home.LivingRoom.MainLights.TurnOffContext(ctx)
+						home.LivingRoom.ArcherLamp.TurnOffContext(ctx)
+						home.LivingRoom.PrattLamp.TurnOffContext(ctx)
 					}, 15*time.Minute)
 				}
 			}),

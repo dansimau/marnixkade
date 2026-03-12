@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/dansimau/hal"
@@ -34,9 +35,9 @@ func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 		hal.NewAutomation().
 			WithName("Button switch off bathroom fan").
 			WithEntities(room.SwitchOffButton).
-			WithAction(func(trigger hal.EntityInterface) {
+			WithAction(func(ctx context.Context, trigger hal.EntityInterface) {
 				if room.SwitchOffButton.PressedTimes() > 1 {
-					room.Fan.TurnOff()
+					room.Fan.TurnOffContext(ctx)
 				}
 			}),
 
@@ -57,8 +58,8 @@ func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 			Condition(room.Light.IsOn).
 			Condition(home.NightMode.IsOff). // Don't turn fan on at night because it is noisy
 			Duration(1 * time.Minute).
-			Run(func() {
-				room.Fan.TurnOn()
+			Run(func(ctx context.Context) {
+				room.Fan.TurnOnContext(ctx)
 			}),
 
 		// Turn bathroom fan off automatically after a while
@@ -66,8 +67,8 @@ func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 			WithEntities(room.Light).
 			Condition(room.LightIsOff).
 			Duration(90 * time.Minute).
-			Run(func() {
-				room.Fan.TurnOff()
+			Run(func(ctx context.Context) {
+				room.Fan.TurnOffContext(ctx)
 			}),
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/dansimau/hal"
@@ -75,7 +76,7 @@ func (b *Bedroom) Automations(home *Marnixkade) []hal.Automation {
 			WithEntities(home.Bedroom.PresenceSensor).
 			Condition(home.Bedroom.PresenceSensor.IsOn).
 			Duration(15 * time.Minute).
-			Run(func() {
+			Run(func(_ context.Context) {
 				if home.Bedroom.PresenceSensor.IsOn() {
 					home.NightMode.TurnOn()
 				}
@@ -86,7 +87,7 @@ func (b *Bedroom) Automations(home *Marnixkade) []hal.Automation {
 			Condition(home.Bedroom.PresenceSensor.IsOff).
 			Condition(func() bool { return time.Now().Hour() >= 10 && time.Now().Hour() < 20 }). // Only turn off during the day
 			Duration(20 * time.Minute).
-			Run(func() {
+			Run(func(_ context.Context) {
 				if home.Bedroom.PresenceSensor.IsOff() {
 					home.NightMode.TurnOff()
 				}
