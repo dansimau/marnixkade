@@ -3,13 +3,17 @@ package logger
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/dansimau/hal/store"
+	"github.com/fatih/color"
+	"github.com/hokaccha/go-prettyjson"
 	"gorm.io/gorm"
 )
 
@@ -172,6 +176,94 @@ func (s *Service) Warn(msg string, entityID string, args ...any) {
 
 	// Log to database
 	s.logToDatabase(slog.LevelWarn, msg, entityID, args...)
+}
+
+// colorDiff returns a copy of diff with + lines colored green and - lines colored red.
+func colorDiff(diff string) string {
+	green := color.New(color.FgGreen).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+
+	lines := strings.Split(diff, "\n")
+	for i, line := range lines {
+		switch {
+		case strings.HasPrefix(line, "+"):
+			lines[i] = green(line)
+		case strings.HasPrefix(line, "-"):
+			lines[i] = red(line)
+		}
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+// InfoDiff logs an info message to the console and stores the message with the raw
+// diff in the database. The diff is printed to stderr with color rather than via
+// slog, which would escape its newlines into a single unreadable line.
+func (s *Service) InfoDiff(msg string, entityID string, diff string, args ...any) {
+	consoleArgs := args
+	if entityID != "" {
+		consoleArgs = append([]any{"entity_id", entityID}, consoleArgs...)
+	}
+	slog.Info(msg, consoleArgs...)
+
+	if diff != "" {
+		fmt.Fprint(os.Stderr, colorDiff(diff))
+	}
+
+	// Store message + raw diff in the database.
+	logText := msg
+	if formattedArgs := formatArgs(args...); formattedArgs != "" {
+		logText = fmt.Sprintf("%s %s", msg, formattedArgs)
+	}
+	if diff != "" {
+		logText = logText + "\n" + diff
+	}
+	s.writeLogText(slog.LevelInfo, entityID, logText)
+}
+
+// prettifyJSON returns a colored version for console and a plain indented version
+// for storage. If jsonData is not valid JSON both versions are the original string.
+func prettifyJSON(jsonData string) (colored, plain string) {
+	var v interface{}
+	if err := json.Unmarshal([]byte(jsonData), &v); err != nil {
+		return jsonData, jsonData
+	}
+
+	colorFormatter := prettyjson.NewFormatter()
+	colorFormatter.Indent = 2
+	if b, err := colorFormatter.Marshal(v); err == nil {
+		colored = string(b)
+	} else {
+		colored = jsonData
+	}
+
+	if b, err := json.MarshalIndent(v, "", "  "); err == nil {
+		plain = string(b)
+	} else {
+		plain = jsonData
+	}
+
+	return colored, plain
+}
+
+// DebugJSON logs a debug message with a JSON payload that is pretty-printed and
+// colorised for console output but stored as plain indented JSON in the database.
+func (s *Service) DebugJSON(msg string, entityID string, jsonData string, args ...any) {
+	consoleArgs := args
+	if entityID != "" {
+		consoleArgs = append([]any{"entity_id", entityID}, consoleArgs...)
+	}
+	slog.Debug(msg, consoleArgs...)
+
+	colored, plain := prettifyJSON(jsonData)
+	fmt.Fprintln(os.Stderr, colored)
+
+	logText := msg
+	if formattedArgs := formatArgs(args...); formattedArgs != "" {
+		logText = fmt.Sprintf("%s %s", msg, formattedArgs)
+	}
+	logText = logText + "\n" + plain
+	s.writeLogText(slog.LevelDebug, entityID, logText)
 }
 
 // InfoContext logs with entity ID and automation name extracted from context
@@ -355,6 +447,46 @@ func (s *Service) logToDatabase(level slog.Level, msg string, entityID string, a
 	}
 }
 
+// writeLogText writes a pre-formatted log text string to the database or buffer.
+func (s *Service) writeLogText(level slog.Level, entityID string, logText string) {
+	s.mu.RLock()
+	db := s.db
+	minLevel := s.level
+	s.mu.RUnlock()
+
+	if level < minLevel {
+		return
+	}
+
+	levelStr := level.String()
+
+	if db != nil {
+		timestamp := time.Now()
+		db.EnqueueWrite(func(gdb *gorm.DB) error {
+			log := store.Log{
+				Timestamp: timestamp,
+				Level:     levelStr,
+				EntityID:  entityID,
+				LogText:   logText,
+			}
+			return gdb.Create(&log).Error
+		})
+	} else {
+		s.mu.Lock()
+		s.buffer[s.bufferHead] = BufferedLog{
+			Timestamp: time.Now(),
+			Level:     levelStr,
+			EntityID:  entityID,
+			LogText:   logText,
+		}
+		s.bufferHead = (s.bufferHead + 1) % s.bufferSize
+		if s.bufferCount < s.bufferSize {
+			s.bufferCount++
+		}
+		s.mu.Unlock()
+	}
+}
+
 // pruneLogs runs in a goroutine to periodically remove old logs
 func (s *Service) pruneLogs() {
 	ticker := time.NewTicker(s.pruneInterval)
@@ -407,6 +539,16 @@ func Error(msg string, entityID string, args ...any) {
 // Debug logs a debug message using the global default logger
 func Debug(msg string, entityID string, args ...any) {
 	defaultLogger.Debug(msg, entityID, args...)
+}
+
+// InfoDiff logs an info message with a diff using the global default logger
+func InfoDiff(msg string, entityID string, diff string, args ...any) {
+	defaultLogger.InfoDiff(msg, entityID, diff, args...)
+}
+
+// DebugJSON logs a debug message with a JSON payload using the global default logger
+func DebugJSON(msg string, entityID string, jsonData string, args ...any) {
+	defaultLogger.DebugJSON(msg, entityID, jsonData, args...)
 }
 
 // Warn logs a warning message using the global default logger
