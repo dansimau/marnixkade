@@ -108,6 +108,8 @@ func (s *Server) listen() {
 			break
 		}
 
+		log.Printf("[Server] Received message: %s", string(messageBytes))
+
 		s.lock.Lock()
 		s.messagesReceived = append(s.messagesReceived, messageBytes)
 		s.lock.Unlock()

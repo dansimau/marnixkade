@@ -75,11 +75,10 @@ func (b *Bedroom) Automations(home *Marnixkade) []hal.Automation {
 		halautomations.NewTimer("Detect person in bed").
 			WithEntities(home.Bedroom.PresenceSensor).
 			Condition(home.Bedroom.PresenceSensor.IsOn).
+			Condition(home.Bedroom.AllLights.IsOff).
 			Duration(15 * time.Minute).
 			Run(func(_ context.Context) {
-				if home.Bedroom.PresenceSensor.IsOn() {
-					home.NightMode.TurnOn()
-				}
+				home.NightMode.TurnOn()
 			}),
 
 		halautomations.NewTimer("Detect everyone out of bed").
@@ -88,9 +87,7 @@ func (b *Bedroom) Automations(home *Marnixkade) []hal.Automation {
 			Condition(func() bool { return time.Now().Hour() >= 10 && time.Now().Hour() < 20 }). // Only turn off during the day
 			Duration(20 * time.Minute).
 			Run(func(_ context.Context) {
-				if home.Bedroom.PresenceSensor.IsOff() {
-					home.NightMode.TurnOff()
-				}
+				home.NightMode.TurnOff()
 			}),
 	}
 }
