@@ -12,6 +12,7 @@ type Downstairs struct {
 
 	MotionSensorStairs *hal.BinarySensor
 	MotionSensorWindow *hal.BinarySensor
+	MotionAware        *hal.BinarySensor
 }
 
 func newDownstairs() Downstairs {
@@ -20,6 +21,7 @@ func newDownstairs() Downstairs {
 
 		MotionSensorStairs: hal.NewBinarySensor("binary_sensor.stairs_sensor_motion"),
 		MotionSensorWindow: hal.NewBinarySensor("binary_sensor.downstairs_sensor_motion"),
+		MotionAware:        hal.NewBinarySensor("binary_sensor.downstairs_motionaware"),
 	}
 }
 
@@ -32,6 +34,7 @@ func (d *Downstairs) Automations(home *Marnixkade) []hal.Automation {
 			WithSensors(
 				home.Downstairs.MotionSensorStairs,
 				home.Downstairs.MotionSensorWindow,
+				home.Downstairs.MotionAware,
 			).
 			WithLights(home.Downstairs.AllLights).
 			TurnsOffAfter(5 * time.Minute),

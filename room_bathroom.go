@@ -11,6 +11,7 @@ import (
 type Bathroom struct {
 	Fan          *hal.Light
 	MotionSensor *hal.BinarySensor
+	MotionAware  *hal.BinarySensor
 	Light        *hal.Light
 
 	SwitchOffButton *hal.Button
@@ -20,6 +21,7 @@ func newBathroom() Bathroom {
 	return Bathroom{
 		Fan:          hal.NewLight("light.bathroom_fan"),
 		MotionSensor: hal.NewBinarySensor("binary_sensor.bathroom_sensor_motion"),
+		MotionAware:  hal.NewBinarySensor("binary_sensor.bathroom_motionaware"),
 		Light:        hal.NewLight("light.bathroom"),
 
 		SwitchOffButton: hal.NewButton("event.bathroom_switch_button_4"),
@@ -43,7 +45,10 @@ func (room *Bathroom) Automations(home *Marnixkade) []hal.Automation {
 
 		halautomations.NewSensorsTriggerLights().
 			WithName("Bathroom light").
-			WithSensors(room.MotionSensor).
+			WithSensors(
+				home.Bathroom.MotionSensor,
+				home.Bathroom.MotionAware,
+			).
 			WithConditionScene(func() bool { return home.NightMode.IsOn() }, nightLight).
 			WithConditionScene(func() bool { return !home.NightMode.IsOn() }, brightLight).
 			// WithConditionScene(func() bool { return true }, spookyLight).
