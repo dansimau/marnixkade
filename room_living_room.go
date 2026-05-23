@@ -14,7 +14,7 @@ type LivingRoom struct {
 	PrattLamp    *hal.Light
 	SaltLamp     *hal.Light
 
-	Onkyo *hal.BinarySensor
+	TV *hal.BinarySensor
 
 	PresenceSensor *hal.BinarySensor // Aqara FP2 (Bar)
 	LightsOffTimer hal.Timer
@@ -34,7 +34,7 @@ func newLivingRoom() LivingRoom {
 		PrattLamp:    hal.NewLight("light.pratt"),
 		SaltLamp:     hal.NewLight("light.salt_lamp"),
 
-		Onkyo: hal.NewBinarySensor("media_player.tx_8270"),
+		TV: hal.NewBinarySensor("media_player.lounge"),
 
 		PresenceSensor: hal.NewBinarySensor("binary_sensor.presence_sensor_fp2_b6d8_presence_sensor_3"),
 	}
@@ -47,7 +47,7 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 			WithEntities(home.LivingRoom.PresenceSensor).
 			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
 				// Ignore presence changes if someone is actively watching TV or playing music
-				if home.LivingRoom.Onkyo.IsOn() {
+				if home.LivingRoom.TV.GetState().State == "playing" {
 					return
 				}
 
@@ -69,6 +69,15 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 						home.LivingRoom.PrattLamp.TurnOffContext(ctx)
 					}, 15*time.Minute)
 				}
+			}),
+		hal.NewAutomation().
+			WithName("Turn off main lights when TV starts").
+			WithEntities(home.LivingRoom.TV).
+			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
+				if home.LivingRoom.TV.GetState().State != "playing" {
+					return
+				}
+				home.LivingRoom.MainLights.TurnOffContext(ctx)
 			}),
 	}
 }
