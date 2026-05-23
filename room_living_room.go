@@ -47,7 +47,7 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 			WithEntities(home.LivingRoom.PresenceSensor).
 			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
 				// Ignore presence changes if someone is actively watching TV or playing music
-				if home.LivingRoom.TV.IsOn() {
+				if home.LivingRoom.TV.GetState().State == "playing" {
 					return
 				}
 
@@ -74,7 +74,7 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 			WithName("Turn off main lights when TV starts").
 			WithEntities(home.LivingRoom.TV).
 			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
-				if !home.LivingRoom.TV.IsOn() {
+				if home.LivingRoom.TV.GetState().State != "playing" {
 					return
 				}
 				home.LivingRoom.MainLights.TurnOffContext(ctx)
