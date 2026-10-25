@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/dansimau/hal"
@@ -31,5 +32,23 @@ func (d *DiningRoom) Automations(home *Marnixkade) []hal.Automation {
 			SetScene(brightLight).
 			TurnsOffAfter(15 * time.Minute),
 		// WithHumanOverrideFor(6 * 60 * time.Minute),
+
+		hal.NewAutomation().
+			WithName("Night mode dining lamp").
+			WithEntities(home.DiningRoom.PresenceSensor).
+			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
+				if !home.NightMode.IsOn() {
+					return
+				}
+
+				// At night only the Moroccan lamp comes on when someone is at
+				// the dining table, and it turns off as soon as nobody is
+				// there anymore.
+				if home.DiningRoom.PresenceSensor.IsOn() {
+					home.LivingRoom.MoroccanLamp.TurnOnContext(ctx, map[string]any{"brightness": 64})
+				} else {
+					home.LivingRoom.MoroccanLamp.TurnOffContext(ctx)
+				}
+			}),
 	}
 }
