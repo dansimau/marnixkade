@@ -54,6 +54,12 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 				if home.LivingRoom.PresenceSensor.IsOn() {
 					home.LivingRoom.LightsOffTimer.Cancel()
 
+					// In night mode the main lights and lamps stay off; the
+					// "Night mode dining lamp" automation handles the Moroccan lamp.
+					if home.NightMode.IsOn() {
+						return
+					}
+
 					// Only turn on the main lights if it's dark
 					if home.Upstairs.LuxSensor.Level() < 50 {
 						home.LivingRoom.MainLights.TurnOnContext(ctx)
