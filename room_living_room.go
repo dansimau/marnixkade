@@ -54,6 +54,12 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 				if home.LivingRoom.PresenceSensor.IsOn() {
 					home.LivingRoom.LightsOffTimer.Cancel()
 
+					// In night mode the main lights and lamps stay off; the
+					// "Night mode lounge lamp" automation handles the Moroccan lamp.
+					if home.NightMode.IsOn() {
+						return
+					}
+
 					// Only turn on the main lights if it's dark
 					if home.Upstairs.LuxSensor.Level() < 50 {
 						home.LivingRoom.MainLights.TurnOnContext(ctx)
@@ -68,6 +74,28 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 						home.LivingRoom.ArcherLamp.TurnOffContext(ctx)
 						home.LivingRoom.PrattLamp.TurnOffContext(ctx)
 					}, 15*time.Minute)
+				}
+			}),
+		hal.NewAutomation().
+			WithName("Night mode lounge lamp").
+			WithEntities(home.LivingRoom.PresenceSensor, home.DiningRoom.PresenceSensor).
+			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
+				if !home.NightMode.IsOn() {
+					return
+				}
+
+				// Ignore presence changes if someone is actively watching TV or playing music
+				if home.LivingRoom.TV.GetState().State == "playing" {
+					return
+				}
+
+				// At night only the Moroccan lamp comes on when someone is in
+				// the lounge or dining room, and it turns off as soon as
+				// nobody is there anymore.
+				if home.LivingRoom.PresenceSensor.IsOn() || home.DiningRoom.PresenceSensor.IsOn() {
+					home.LivingRoom.MoroccanLamp.TurnOnContext(ctx, map[string]any{"brightness": 64})
+				} else {
+					home.LivingRoom.MoroccanLamp.TurnOffContext(ctx)
 				}
 			}),
 		hal.NewAutomation().
