@@ -3,6 +3,7 @@ package hal
 import (
 	"context"
 	"errors"
+	"maps"
 	"strings"
 
 	"github.com/dansimau/hal/hassws"
@@ -38,7 +39,7 @@ func (l *Light) GetBrightness() float64 {
 }
 
 func (l *Light) IsOn() bool {
-	return l.Entity.GetState().State == "on"
+	return l.Entity.GetState().State == stateOn
 }
 
 func (l *Light) TurnOn(attributes ...map[string]any) error {
@@ -52,19 +53,17 @@ func (l *Light) TurnOn(attributes ...map[string]any) error {
 	logger.Info("Turning on light", entityID)
 
 	data := map[string]any{
-		"entity_id": []string{l.GetID()},
+		serviceDataEntityID: []string{l.GetID()},
 	}
 
 	for _, attribute := range attributes {
-		for k, v := range attribute {
-			data[k] = v
-		}
+		maps.Copy(data, attribute)
 	}
 
 	_, err := l.connection.CallService(hassws.CallServiceRequest{
 		Type:    hassws.MessageTypeCallService,
-		Domain:  "light",
-		Service: "turn_on",
+		Domain:  domainLight,
+		Service: serviceTurnOn,
 		Data:    data,
 	})
 	if err != nil {
@@ -87,19 +86,17 @@ func (l *Light) TurnOnContext(ctx context.Context, attributes ...map[string]any)
 	logger.InfoContext(ctx, "Turning on light", "attributes", attributes)
 
 	data := map[string]any{
-		"entity_id": []string{l.GetID()},
+		serviceDataEntityID: []string{l.GetID()},
 	}
 
 	for _, attribute := range attributes {
-		for k, v := range attribute {
-			data[k] = v
-		}
+		maps.Copy(data, attribute)
 	}
 
-	_, err := l.connection.CallService(hassws.CallServiceRequest{
+	_, err := l.connection.CallService(hassws.CallServiceRequest{ //nolint:contextcheck // no context-aware CallService
 		Type:    hassws.MessageTypeCallService,
-		Domain:  "light",
-		Service: "turn_on",
+		Domain:  domainLight,
+		Service: serviceTurnOn,
 		Data:    data,
 	})
 	if err != nil {
@@ -122,13 +119,13 @@ func (l *Light) TurnOff() error {
 	logger.Info("Turning off light", entityID)
 
 	data := map[string]any{
-		"entity_id": []string{l.GetID()},
+		serviceDataEntityID: []string{l.GetID()},
 	}
 
 	_, err := l.connection.CallService(hassws.CallServiceRequest{
 		Type:    hassws.MessageTypeCallService,
-		Domain:  "light",
-		Service: "turn_off",
+		Domain:  domainLight,
+		Service: serviceTurnOff,
 		Data:    data,
 	})
 	if err != nil {
@@ -151,13 +148,13 @@ func (l *Light) TurnOffContext(ctx context.Context) error {
 	logger.InfoContext(ctx, "Turning off light")
 
 	data := map[string]any{
-		"entity_id": []string{l.GetID()},
+		serviceDataEntityID: []string{l.GetID()},
 	}
 
-	_, err := l.connection.CallService(hassws.CallServiceRequest{
+	_, err := l.connection.CallService(hassws.CallServiceRequest{ //nolint:contextcheck // no context-aware CallService
 		Type:    hassws.MessageTypeCallService,
-		Domain:  "light",
-		Service: "turn_off",
+		Domain:  domainLight,
+		Service: serviceTurnOff,
 		Data:    data,
 	})
 	if err != nil {
@@ -236,7 +233,8 @@ func (lg LightGroup) TurnOn(attributes ...map[string]any) error {
 	var errs []error
 
 	for _, l := range lg {
-		if err := l.TurnOn(attributes...); err != nil {
+		err := l.TurnOn(attributes...)
+		if err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -254,7 +252,8 @@ func (lg LightGroup) TurnOnContext(ctx context.Context, attributes ...map[string
 	var errs []error
 
 	for _, l := range lg {
-		if err := l.TurnOnContext(ctx, attributes...); err != nil {
+		err := l.TurnOnContext(ctx, attributes...)
+		if err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -272,7 +271,8 @@ func (lg LightGroup) TurnOff() error {
 	var errs []error
 
 	for _, l := range lg {
-		if err := l.TurnOff(); err != nil {
+		err := l.TurnOff()
+		if err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -290,7 +290,8 @@ func (lg LightGroup) TurnOffContext(ctx context.Context) error {
 	var errs []error
 
 	for _, l := range lg {
-		if err := l.TurnOffContext(ctx); err != nil {
+		err := l.TurnOffContext(ctx)
+		if err != nil {
 			errs = append(errs, err)
 		}
 	}

@@ -1,6 +1,6 @@
 module github.com/dansimau/marnixkade
 
-go 1.22.10
+go 1.26.0
 
 require (
 	github.com/dansimau/hal v0.0.0-20250929193530-d4a10b29f691
@@ -10,21 +10,21 @@ require (
 require (
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fatih/color v1.15.0 // indirect
+	github.com/fatih/color v1.19.0 // indirect
 	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/glebarez/sqlite v1.11.0 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-colorable v0.1.16 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/nathan-osman/go-sunrise v1.1.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/gorm v1.25.12 // indirect
 	gotest.tools/v3 v3.5.1 // indirect

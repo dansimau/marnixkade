@@ -14,6 +14,22 @@ type ConditionScene struct {
 	Scene     map[string]any
 }
 
+const (
+	// defaultDimLightsBeforeTurnOff is how long before turning off the lights
+	// are dimmed, unless overridden with DimLightsBeforeTurnOff.
+	defaultDimLightsBeforeTurnOff = 10 * time.Second
+	// defaultTurnOffCooldownPeriod is how long after the lights turn off sensor
+	// state changes are ignored, unless overridden with TurnOffCooldownPeriod.
+	defaultTurnOffCooldownPeriod = 10 * time.Second
+	// maxBrightness is the maximum Home Assistant light brightness, used as the
+	// default brightness when turning lights on.
+	maxBrightness = 255
+	// dimDivisor is the factor by which brightness is reduced when dimming
+	// lights before they turn off. A light below this brightness cannot be
+	// dimmed any further.
+	dimDivisor = 2
+)
+
 // SensorsTriggerLights is an automation that combines one or more sensors
 // (motion or presence sensors) and a set of lights. Lights are turned on when
 // any of the sensors are triggered and turned off after a given duration.
@@ -32,12 +48,14 @@ type SensorsTriggerLights struct {
 	condition              func() bool // optional: func that must return true for the automation to run
 	conditionScene         []ConditionScene
 	dimLightsBeforeTurnOff time.Duration
-	humanOverrideFor       *time.Duration // optional: duration after which lights will turn off after being turned on from outside this system
-	sensors                []hal.EntityInterface
-	turnsOnLights          []hal.LightInterface
-	turnsOffLights         []hal.LightInterface
-	turnsOffAfter          *time.Duration // optional: duration after which lights will turn off after being turned on
-	turnOffCooldownPeriod  time.Duration
+	// humanOverrideFor is optional: duration after which lights will turn off
+	// after being turned on from outside this system.
+	humanOverrideFor      *time.Duration
+	sensors               []hal.EntityInterface
+	turnsOnLights         []hal.LightInterface
+	turnsOffLights        []hal.LightInterface
+	turnsOffAfter         *time.Duration // optional: duration after which lights will turn off after being turned on
+	turnOffCooldownPeriod time.Duration
 
 	dimLightsTimer       hal.Timer
 	humanOverrideTimer   hal.Timer
@@ -47,9 +65,9 @@ type SensorsTriggerLights struct {
 
 func NewSensorsTriggerLights() *SensorsTriggerLights {
 	return &SensorsTriggerLights{
-		dimLightsBeforeTurnOff: time.Second * 10,
-		turnOffCooldownPeriod:  time.Second * 10,
-		brightness:             255,
+		dimLightsBeforeTurnOff: defaultDimLightsBeforeTurnOff,
+		turnOffCooldownPeriod:  defaultTurnOffCooldownPeriod,
+		brightness:             maxBrightness,
 	}
 }
 
@@ -70,7 +88,10 @@ func (a *SensorsTriggerLights) WithClock(c clock.Clock) *SensorsTriggerLights {
 	return a
 }
 
-// WithCondition sets a condition that must be true for the automation to run.
+// WithCondition sets a condition that must be true for the lights to be turned
+// on by a sensor. The condition does not affect the turn off timer: a sensor
+// clearing always starts it and a sensor triggering always cancels it, so lights
+// that are already on are never turned off while the sensor is still triggered.
 func (a *SensorsTriggerLights) WithCondition(condition func() bool) *SensorsTriggerLights {
 	a.condition = condition
 
@@ -168,6 +189,31 @@ func (a *SensorsTriggerLights) SetScene(scene map[string]any) *SensorsTriggerLig
 	return a
 }
 
+func (a *SensorsTriggerLights) Action(ctx context.Context, triggerEntity hal.EntityInterface) {
+	logger.InfoContext(ctx, "Automation triggered with event", "state", triggerEntity.GetState())
+
+	if a.isSensor(triggerEntity) {
+		a.handleSensorStateChange(ctx)
+	} else if a.isTurnOnLight(triggerEntity) {
+		a.handleLightStateChanged(ctx)
+	}
+}
+
+func (a *SensorsTriggerLights) Entities() hal.Entities {
+	entities := make([]hal.EntityInterface, 0, len(a.sensors)+len(a.turnsOnLights))
+	entities = append(entities, a.sensors...)
+
+	for _, light := range a.turnsOnLights {
+		entities = append(entities, light)
+	}
+
+	return hal.Entities(entities)
+}
+
+func (a *SensorsTriggerLights) Name() string {
+	return a.name
+}
+
 // triggered returns true if any of the sensors have been triggered.
 func (a *SensorsTriggerLights) triggered() bool {
 	for _, sensor := range a.sensors {
@@ -261,7 +307,8 @@ func (a *SensorsTriggerLights) turnOnLights(ctx context.Context) {
 	logger.InfoContext(ctx, "Turning on lights", "attributes", attributes)
 
 	for _, light := range a.turnsOnLights {
-		if err := light.TurnOnContext(ctx, attributes); err != nil {
+		err := light.TurnOnContext(ctx, attributes)
+		if err != nil {
 			logger.ErrorContext(ctx, "Error turning on light", "error", err)
 		}
 	}
@@ -272,15 +319,16 @@ func (a *SensorsTriggerLights) dimLights(ctx context.Context) {
 
 	for _, light := range a.turnsOffLights {
 		brightness := light.GetBrightness()
-		if brightness < 2 {
+		if brightness < dimDivisor {
 			logger.InfoContext(ctx, "Light is already at minimum brightness, skipping dimming", "light", light.GetID())
 
 			continue
 		}
 
-		dimmedBrightness := brightness / 2
+		dimmedBrightness := brightness / dimDivisor
 
-		if err := light.TurnOnContext(ctx, map[string]any{"brightness": dimmedBrightness}); err != nil {
+		err := light.TurnOnContext(ctx, map[string]any{"brightness": dimmedBrightness})
+		if err != nil {
 			logger.ErrorContext(ctx, "Error dimming light", "error", err)
 		}
 	}
@@ -290,7 +338,8 @@ func (a *SensorsTriggerLights) turnOffLights(ctx context.Context) {
 	logger.InfoContext(ctx, "Turning off lights")
 
 	for _, light := range a.turnsOffLights {
-		if err := light.TurnOffContext(ctx); err != nil {
+		err := light.TurnOffContext(ctx)
+		if err != nil {
 			logger.ErrorContext(ctx, "Error turning off light", "error", err)
 		}
 	}
@@ -331,17 +380,15 @@ func (a *SensorsTriggerLights) handleSensorStateChange(ctx context.Context) {
 		return
 	}
 
-	if a.condition != nil && !a.condition() {
-		logger.InfoContext(ctx, "Condition not met, skipping")
-
-		return
-	}
-
 	if a.triggered() {
 		lightsWereDimmedFromTimer := a.isLightDimmedFromTimer()
 
 		logger.InfoContext(ctx, "Sensor triggered", "lightsWereDimmedFromTimer", lightsWereDimmedFromTimer)
 
+		// Always cancel the turn off countdown when the sensor is triggered,
+		// regardless of the condition. Otherwise a brief sensor dropout while
+		// the condition is false would leave the timer running and turn the
+		// lights off while someone is still present.
 		a.stopTurnOffTimer(ctx)
 		a.stopDimLightsTimer(ctx)
 
@@ -349,6 +396,15 @@ func (a *SensorsTriggerLights) handleSensorStateChange(ctx context.Context) {
 		// but it gets overridden by a sensor being triggered again.
 		if a.lightsOn() && !lightsWereDimmedFromTimer {
 			logger.InfoContext(ctx, "Sensor triggered, but lights are already on, ignoring")
+
+			return
+		}
+
+		// The condition only gates turning the lights on. Lights that were
+		// dimmed by our own timer are restored regardless, since that undoes
+		// our own action rather than turning on lights that were off.
+		if a.condition != nil && !a.condition() && !lightsWereDimmedFromTimer {
+			logger.InfoContext(ctx, "Condition not met, not turning on lights")
 
 			return
 		}
@@ -376,7 +432,7 @@ func (a *SensorsTriggerLights) handleLightStateChanged(ctx context.Context) {
 
 		if a.humanOverrideFor != nil {
 			logger.InfoContext(ctx, "Light turned on, setting human override", "duration", a.humanOverrideFor.String())
-			a.humanOverrideTimer.Start(nil, *a.humanOverrideFor)
+			a.humanOverrideTimer.StartContext(ctx, nil, *a.humanOverrideFor)
 		}
 	} else {
 		a.humanOverrideTimer.Cancel()
@@ -393,29 +449,4 @@ func (a *SensorsTriggerLights) handleLightStateChanged(ctx context.Context) {
 // isLightDimmedFromTimer returns true if the lights are dimmed from the timer.
 func (a *SensorsTriggerLights) isLightDimmedFromTimer() bool {
 	return a.dimLightsBeforeTurnOff > 0 && !a.dimLightsTimer.IsRunning() && a.turnOffTimer.IsRunning()
-}
-
-func (a *SensorsTriggerLights) Action(ctx context.Context, triggerEntity hal.EntityInterface) {
-	logger.InfoContext(ctx, "Automation triggered with event", "state", triggerEntity.GetState())
-
-	if a.isSensor(triggerEntity) {
-		a.handleSensorStateChange(ctx)
-	} else if a.isTurnOnLight(triggerEntity) {
-		a.handleLightStateChanged(ctx)
-	}
-}
-
-func (a *SensorsTriggerLights) Entities() hal.Entities {
-	entities := []hal.EntityInterface{}
-	entities = append(entities, a.sensors...)
-
-	for _, light := range a.turnsOnLights {
-		entities = append(entities, light)
-	}
-
-	return hal.Entities(entities)
-}
-
-func (a *SensorsTriggerLights) Name() string {
-	return a.name
 }
