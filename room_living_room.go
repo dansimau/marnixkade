@@ -17,7 +17,8 @@ type LivingRoom struct {
 	TV *hal.BinarySensor
 
 	PresenceSensor *hal.BinarySensor // Aqara FP2 (Bar)
-	LightsOffTimer hal.Timer
+
+	lightsOffTimer hal.Timer
 }
 
 func newLivingRoom() LivingRoom {
@@ -45,6 +46,14 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 		hal.NewAutomation().
 			WithName("Living room lights").
 			WithEntities(home.LivingRoom.PresenceSensor).
+			WithTimer(&home.LivingRoom.lightsOffTimer, hal.Timer{
+				Name: "LivingRoomLightsOff",
+				OnExpire: func(ctx context.Context) {
+					home.LivingRoom.MainLights.TurnOffContext(ctx)
+					home.LivingRoom.ArcherLamp.TurnOffContext(ctx)
+					home.LivingRoom.PrattLamp.TurnOffContext(ctx)
+				},
+			}).
 			WithAction(func(ctx context.Context, _ hal.EntityInterface) {
 				// Ignore presence changes if someone is actively watching TV or playing music
 				if home.LivingRoom.TV.GetState().State == "playing" {
@@ -52,7 +61,7 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 				}
 
 				if home.LivingRoom.PresenceSensor.IsOn() {
-					home.LivingRoom.LightsOffTimer.Cancel()
+					home.LivingRoom.lightsOffTimer.Cancel()
 
 					// In night mode the main lights and lamps stay off; the
 					// "Night mode dining lamp" automation handles the Moroccan lamp.
@@ -69,11 +78,7 @@ func (l *LivingRoom) Automations(home *Marnixkade) []hal.Automation {
 					home.LivingRoom.ArcherLamp.TurnOnContext(ctx)
 					home.LivingRoom.PrattLamp.TurnOnContext(ctx)
 				} else {
-					home.LivingRoom.LightsOffTimer.StartContext(ctx, func(ctx context.Context) {
-						home.LivingRoom.MainLights.TurnOffContext(ctx)
-						home.LivingRoom.ArcherLamp.TurnOffContext(ctx)
-						home.LivingRoom.PrattLamp.TurnOffContext(ctx)
-					}, 15*time.Minute)
+					home.LivingRoom.lightsOffTimer.Start(ctx, 15*time.Minute)
 				}
 			}),
 		hal.NewAutomation().
