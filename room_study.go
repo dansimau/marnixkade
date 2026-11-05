@@ -35,9 +35,7 @@ func (s *Study) Automations(home *Marnixkade) []hal.Automation {
 		halautomations.NewSensorsTriggerLights().
 			WithName("Study lights").
 			WithCondition(func() bool {
-				// Don't auto turn on lights if night mode is on, but still let
-				// the sensor clearing start the turn off timer.
-				return !home.NightMode.IsOn() || home.Study.PresenceSensor.GetState().State != "on"
+				return !home.NightMode.IsOn() // Don't auto turn on lights if night mode is on
 			}).
 			WithSensors(home.Study.PresenceSensor).
 			WithLights(home.Study.Lights).

@@ -25,9 +25,7 @@ func (d *DiningRoom) Automations(home *Marnixkade) []hal.Automation {
 		halautomations.NewSensorsTriggerLights().
 			WithName("Dining table lights").
 			WithCondition(func() bool {
-				// Don't auto turn on lights if night mode is on, but still let
-				// the sensor clearing start the turn off timer.
-				return !home.NightMode.IsOn() || !home.DiningRoom.PresenceSensor.IsOn()
+				return !home.NightMode.IsOn() // Don't auto turn on lights if night mode is on
 			}).
 			WithSensors(home.DiningRoom.PresenceSensor).
 			WithLights(home.DiningRoom.Lights).
